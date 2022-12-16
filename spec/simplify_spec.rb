@@ -8,7 +8,7 @@ end
 
 RSpec.describe Toritori do
   vars do
-    factory do
+    abstract_factory do
       Class.new do
         include Toritori
 
@@ -23,12 +23,21 @@ RSpec.describe Toritori do
     end
   end
 
-  it "simply creates instances" do
-    expect(factory).to respond_to(:params)
-    expect(factory).to respond_to(:params_factory)
-    expect(factory.params_factory).to be_a(Toritori::Factory)
-    instance = factory.params_factory.create(2)
-    expect(instance).to be_a(EasyParams)
-    expect(instance.get).to eq(7)
+  describe "concrete factory" do
+    it "handles classes" do
+      expect(abstract_factory).to respond_to :params_factory
+      factory = abstract_factory.params_factory
+      expect(factory).to be_a Toritori::Factory
+      expect(factory.base_class).to eq EasyParams
+      expect(factory.subclass < EasyParams).to be_truthy
+    end
+
+    it "simply creates instances" do
+      factory = abstract_factory.params_factory
+      expect { factory.create }.to raise_error ArgumentError
+      instance = factory.create(2)
+      expect(instance).to be_a EasyParams
+      expect(instance.get).to eq 7
+    end
   end
 end
