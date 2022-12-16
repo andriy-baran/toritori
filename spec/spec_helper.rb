@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require 'rspec_vars_helper'
-require 'toritori'
-require 'pry'
+require "rspec_vars_helper"
+require "toritori"
+require "pry"
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure

@@ -5,21 +5,20 @@ module Toritori
   class Factory
     attr_reader :name, :component_name, :base_class, :init, :block
 
-    def initialize(name, component_name, base_class: nil, init: nil)
+    def initialize(name, base_class: nil, init: nil)
       @name = name
-      @component_name = component_name
       @base_class = base_class
       @init = init
     end
 
-    def patch_component(&block)
+    def patch_class(&block)
       return base_class unless block
 
       @base_class = Class.new(base_class, &block)
     end
 
-    def new_instance(init, *args, &block)
-      base_class.__send__(init, *args, &block)
+    def create(*args, &block)
+      @init.call(base_class, *args, &block)
     end
   end
 end

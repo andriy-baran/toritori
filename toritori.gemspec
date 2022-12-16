@@ -10,9 +10,9 @@ Gem::Specification.new do |spec|
 
   spec.summary       = "DSL for factories"
   spec.description   = "Create factories with DSL"
-  spec.homepage      = "https://github.com/andriy-baran/Toritori"
+  spec.homepage      = "https://github.com/andriy-baran/toritori"
   spec.license       = "MIT"
-  spec.required_ruby_version = Gem::Requirement.new(">= 2.3.0")
+  spec.required_ruby_version = Gem::Requirement.new(">= 2.5.0")
 
   spec.metadata["allowed_push_host"] = "https://rubygems.org"
 
@@ -29,5 +29,5 @@ Gem::Specification.new do |spec|
   spec.executables   = spec.files.grep(%r{\Aexe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
 
-  spec.add_development_dependency 'rspec_vars_helper', '~> 0.1'
+  spec.add_development_dependency "rspec_vars_helper", "~> 0.1"
 end
