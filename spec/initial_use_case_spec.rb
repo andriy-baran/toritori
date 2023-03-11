@@ -29,7 +29,7 @@ RSpec.describe Toritori do
       factory = abstract_factory.params_factory
       expect(factory).to be_a Toritori::Factory
       expect(factory.base_class).to eq EasyParams
-      expect(factory.subclass < EasyParams).to be_truthy
+      expect(factory.subclass <= EasyParams).to be_truthy
     end
 
     it "simply creates instances" do

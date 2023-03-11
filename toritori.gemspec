@@ -31,4 +31,5 @@ Gem::Specification.new do |spec|
 
   spec.add_development_dependency "rspec_vars_helper", "~> 0.1"
   spec.add_development_dependency "rubocop-rspec"
+  spec.add_development_dependency "pry"
 end

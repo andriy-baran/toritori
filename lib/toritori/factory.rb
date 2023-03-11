@@ -5,11 +5,11 @@ module Toritori
   class Factory
     attr_reader :name, :base_class, :subclass, :init
 
-    def initialize(name, base_class: nil, init: nil)
+    def initialize(name, base_class: nil, init: Toritori.default_init)
       @name = name
       @base_class = base_class
       @subclass = base_class
-      @init = init
+      @init = Toritori.check_init(init)
     end
 
     def patch_class(&block)
@@ -18,8 +18,22 @@ module Toritori
       @subclass = Class.new(base_class, &block)
     end
 
+    def init=(new_init)
+      @init = Toritori.check_init(new_init)
+    end
+
     def create(*args, &block)
+      if args.size != expected_arity
+        raise(ArgumentError, "wrong number of arguments (given #{args.size}, expected #{expected_arity})")
+      end
+
       @init.call(subclass, *args, &block)
+    end
+
+    private
+
+    def expected_arity
+      @init.arity - 1
     end
   end
 end
