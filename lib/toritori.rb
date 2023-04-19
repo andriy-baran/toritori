@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
+require "toritori/factory/instantiator"
+require "toritori/factory/subclass"
 require "toritori/factory"
-require "toritori/wrap"
 require "toritori/version"
 
 # Main namespace
@@ -14,22 +15,14 @@ module Toritori
       @factories ||= {}
     end
 
-    def produces(name, base_class = Class.new, init_methods = ->(k) { k.new })
-      factories[name] = Toritori::Factory.new(name, base_class: base_class, init: init_methods)
+    def factory(name, produces: Class.new, &block)
+      factories[name] = Toritori::Factory.new(name, base_class: produces, &block)
       define_singleton_method(:"#{name}_factory") { factories[name] }
-    end
-
-    def default_init
-      @default_init ||= ->(k) { k.new }
     end
   end
 
-  def self.check_init(init)
-    raise(ArgumentError, 'init must be a lambda') unless init.is_a?(Proc)
-    raise(ArgumentError, 'init must be a lambda') unless init.lambda?
-    raise(ArgumentError, 'init lambda must have at least one required argument') if init.arity < 1
-
-    init
+  def self.default_init
+    @default_init ||= ->(*a, **kw, &b) { new(*a, **kw, &b) }
   end
 
   def self.included(receiver)

@@ -3,37 +3,32 @@
 module Toritori
   # Generates module that adds support for objects creation
   class Factory
-    attr_reader :name, :base_class, :subclass, :init
+    attr_reader :name, :base_class
 
-    def initialize(name, base_class: nil, init: Toritori.default_init)
+    def initialize(name, base_class: nil, &block)
       @name = name
       @base_class = base_class
-      @subclass = base_class
-      @init = Toritori.check_init(init)
+      @subclass = Subclass.new
+      @subclass.init(&block)
+      instantiator_for(base_class)
     end
 
-    def patch_class(&block)
-      return base_class unless block
+    def subclass(&block)
+      return @subclass unless block
 
-      @subclass = Class.new(base_class, &block)
-    end
-
-    def init=(new_init)
-      @init = Toritori.check_init(new_init)
+      sub_class = Class.new(base_class, &block)
+      instantiator_for(sub_class)
     end
 
     def create(*args, &block)
-      if args.size != expected_arity
-        raise(ArgumentError, "wrong number of arguments (given #{args.size}, expected #{expected_arity})")
-      end
-
-      @init.call(subclass, *args, &block)
+      @instantiator.__create__(*args, &block)
     end
 
     private
 
-    def expected_arity
-      @init.arity - 1
+    def instantiator_for(klass)
+      @instantiator = Instantiator.new(klass)
+      @instantiator.define_singleton_method(:__create__, &@subclass.init)
     end
   end
 end

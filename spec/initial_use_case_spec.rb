@@ -12,9 +12,9 @@ RSpec.describe Toritori do
       Class.new do
         include Toritori
 
-        produces :params, EasyParams, ->(k, d) { k.new(d) }
+        factory :params, produces: EasyParams
 
-        params_factory.patch_class do
+        params_factory.subclass do
           def get
             @data + 5
           end
@@ -23,16 +23,16 @@ RSpec.describe Toritori do
     end
   end
 
-  describe "concrete factory" do
-    it "handles classes" do
+  describe 'concrete factory' do
+    it 'handles classes' do
       expect(abstract_factory).to respond_to :params_factory
       factory = abstract_factory.params_factory
       expect(factory).to be_a Toritori::Factory
       expect(factory.base_class).to eq EasyParams
-      expect(factory.subclass <= EasyParams).to be_truthy
+      expect(factory.base_class <= EasyParams).to be_truthy
     end
 
-    it "simply creates instances" do
+    it 'simply creates instances' do
       factory = abstract_factory.params_factory
       expect { factory.create }.to raise_error ArgumentError
       instance = factory.create(2)
