@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Toritori
   class Factory
     # Utility class that evaluates initalization procs

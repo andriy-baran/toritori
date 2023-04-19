@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require "toritori/factory/instantiator"
-require "toritori/factory/subclass"
-require "toritori/factory"
-require "toritori/version"
+require 'toritori/factory/instantiator'
+require 'toritori/factory/subclass'
+require 'toritori/factory'
+require 'toritori/version'
 
 # Main namespace
 module Toritori
