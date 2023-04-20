@@ -8,10 +8,10 @@ module Toritori
         @type = type
       end
 
-      def method_missing(method, *args, &block)
+      def method_missing(method, *args, **kwargs, &block)
         return super unless @type.respond_to?(method)
 
-        @type.public_send(method, *args, &block)
+        @type.public_send(method, *args, **kwargs, &block)
       end
 
       def respond_to_missing?(method, include_private = false)

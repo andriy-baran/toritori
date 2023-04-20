@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 class EasyParams
-  def self.create(...)
-    new(...)
+  def self.create(*args, **kwargs, &block)
+    new(*args, **kwargs, &block)
   end
 
   def initialize(data)
@@ -42,7 +42,9 @@ RSpec.describe Toritori do
         end
 
         nulls_factory.subclass do
-          def initialize(data); end
+          def initialize(data:, &block)
+            block.call(data)
+          end
 
           def null?
             true
@@ -70,9 +72,13 @@ RSpec.describe Toritori do
     end
 
     it 'supports anonimous classes' do
+      expected = nil
       factory = abstract_factory.nulls_factory
-      instance = factory.create(2)
+      instance = factory.create(data: 2) do |data|
+        expected = data
+      end
       expect(instance).to be_null
+      expect(expected).to eq 2
     end
   end
 end

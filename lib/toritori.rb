@@ -22,7 +22,7 @@ module Toritori
   end
 
   def self.default_init
-    @default_init ||= ->(*a, **kw, &b) { new(*a, **kw, &b) }
+    @default_init ||= ->(*args, **kwargs, &block) { new(*args, **kwargs, &block) }
   end
 
   def self.included(receiver)

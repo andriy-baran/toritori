@@ -20,8 +20,8 @@ module Toritori
       instantiator_for(sub_class)
     end
 
-    def create(*args, &block)
-      @instantiator.__create__(*args, &block)
+    def create(*args, **kwargs, &block)
+      @instantiator.__create__(*args, **kwargs, &block)
     end
 
     private
