@@ -5,6 +5,10 @@ module Toritori
   class Factory
     attr_reader :name, :base_class
 
+    def self.copy(factory)
+      new(factory.name, base_class: factory.base_class, &factory.subclass.init)
+    end
+
     def initialize(name, base_class: nil, &block)
       @name = name
       @base_class = base_class
@@ -16,8 +20,8 @@ module Toritori
     def subclass(&block)
       return @subclass unless block
 
-      sub_class = Class.new(base_class, &block)
-      instantiator_for(sub_class)
+      @base_class = Class.new(base_class, &block)
+      instantiator_for(@base_class)
     end
 
     def create(*args, **kwargs, &block)

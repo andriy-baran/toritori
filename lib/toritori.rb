@@ -15,9 +15,20 @@ module Toritori
       @factories ||= {}
     end
 
+    def factories=(other)
+      @factories = other
+    end
+
     def factory(name, produces: Class.new, &block)
       factories[name] = Toritori::Factory.new(name, base_class: produces, &block)
       define_singleton_method(:"#{name}_factory") { factories[name] }
+    end
+
+    def inherited(subclass)
+      super
+      subclass.factories = factories.transform_values do |factory|
+        Toritori::Factory.copy(factory)
+      end
     end
   end
 
