@@ -5,8 +5,8 @@ module Toritori
   class Factory
     attr_reader :name, :base_class
 
-    def self.copy(factory)
-      new(factory.name, base_class: factory.base_class, &factory.subclass.init)
+    def copy
+      self.class.new(name, base_class: base_class, &subclass.init)
     end
 
     def initialize(name, base_class: nil, &block)

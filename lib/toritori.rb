@@ -26,9 +26,7 @@ module Toritori
 
     def inherited(subclass)
       super
-      subclass.factories = factories.transform_values do |factory|
-        Toritori::Factory.copy(factory)
-      end
+      subclass.factories = factories.transform_values(&:copy)
     end
   end
 
