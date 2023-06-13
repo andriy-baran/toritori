@@ -2,7 +2,7 @@
 
 module Toritori
   class Factory
-    # Utility class that evaluates initalization procs
+    # Utility class that stores initalization procs
     class Subclass < BasicObject
       def initialize
         @init = ::Toritori.default_init
