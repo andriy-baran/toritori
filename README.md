@@ -1,5 +1,9 @@
 # Toritori
 
+[![Maintainability](https://api.codeclimate.com/v1/badges/4e5138d5018b81671692/maintainability)](https://codeclimate.com/github/andriy-baran/toritori/maintainability)
+
+[![Test Coverage](https://api.codeclimate.com/v1/badges/4e5138d5018b81671692/test_coverage)](https://codeclimate.com/github/andriy-baran/toritori/test_coverage)
+
 Simply tool that organizes multiple factory objects.
 It provides the DSL for defining factories for a given class and access them later.
 In addition there is a possibility to create a subclasses of a given type.

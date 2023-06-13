@@ -11,8 +11,22 @@ jobs:
       uses: ruby/setup-ruby@v1
       with:
         ruby-version: 3.0.0
-    - name: Run the default task
+    - name: Install dependencies
       run: |
         gem install bundler -v 2.2.3
         bundle install
-        bundle exec rake
+    - name: Setup Code Climate test-reporter
+      run: |
+        curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+        chmod +x ./cc-test-reporter
+        ./cc-test-reporter before-build
+    - name: Run the default task
+      env:
+        CC_TEST_REPORTER_ID: 6d12ad52d3aa809a0492eddffd7ca6e43a25982f81dcdcccb3204497b3242bc3
+      run: bundle exec rake
+    - name: Publish code coverage
+      run: |
+        export GIT_BRANCH="master"
+        pwd
+        ls -l coverage
+        ./cc-test-reporter after-build -d -t simplecov -r 6d12ad52d3aa809a0492eddffd7ca6e43a25982f81dcdcccb3204497b3242bc3
