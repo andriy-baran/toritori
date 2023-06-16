@@ -124,6 +124,20 @@ modern_chair.wifi # => false
 ```
 The subclass (`ModernFactory`) will gen a copy of `factories` so you can customize sublasses without side effects on a base class (`MyAbstractFactory`).
 
+Sometimes when subclass definition is big it is better to put it into a separate file. To make the library to use that sub-class:
+```ruby
+class ModernTable < MyAbstractFactory.table_factory.base_class
+  # ... omitied ...
+end
+
+class ModernFactory < MyAbstractFactory
+  # Update initialize method
+  table_factory.subclass.base_class ModernTable
+
+  table_factory.create # => #<ModernTable>
+end
+```
+The sub-class should be a child of a base class we specified in factory of the parent abstract factory, otherwise you'll get `Toritori::SubclassError`. We recommend to have base classes (`produces:` option) for parent abstract factory defined explicitly to have an ability to refer them in sub-class files.
 
 ## Development
 

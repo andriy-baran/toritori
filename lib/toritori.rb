@@ -8,6 +8,8 @@ require 'toritori/version'
 # Main namespace
 module Toritori
   class Error < StandardError; end
+  class SubclassError < Error; end
+  class NotAClassError < Error; end
 
   # Defines high level interface
   module ClassMethods

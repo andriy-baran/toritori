@@ -4,8 +4,10 @@ module Toritori
   class Factory
     # Utility class that evaluates initalization procs
     class Instantiator < BasicObject
-      def initialize(type)
-        @type = type
+      def initialize(subclass)
+        @subclass = subclass
+        @type = subclass.base_class
+        define_singleton_method(:__create__, &subclass.init)
       end
 
       def method_missing(method, *args, **kwargs, &block)

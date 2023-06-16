@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class EasyParams
+class OverrideParams
   def self.create(*args, **kwargs, &block)
     new(*args, **kwargs, &block)
   end
@@ -20,7 +20,7 @@ RSpec.describe Toritori do
       Class.new do
         include Toritori
 
-        factory :params, produces: EasyParams do |d|
+        factory :params, produces: OverrideParams do |d|
           create(d)
         end
 
@@ -59,14 +59,14 @@ RSpec.describe Toritori do
       expect(abstract_factory).to respond_to :params_factory
       factory = abstract_factory.params_factory
       expect(factory).to be_a Toritori::Factory
-      expect(factory.base_class <= EasyParams).to be_truthy
+      expect(factory.base_class <= OverrideParams).to be_truthy
     end
 
     it 'allows overriding of initialize proc' do
       factory = abstract_factory.params_factory
       expect { factory.create }.to raise_error ArgumentError
       instance = factory.create(2, 3)
-      expect(instance).to be_a EasyParams
+      expect(instance).to be_a OverrideParams
       expect(instance.get(4)).to eq 6 # 2 + 5 + 3 - 4
     end
 
