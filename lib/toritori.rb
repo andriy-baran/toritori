@@ -1,9 +1,8 @@
 # frozen_string_literal: true
 
-require 'toritori/factory/instantiator'
-require 'toritori/factory/subclass'
-require 'toritori/factory'
-require 'toritori/version'
+require_relative './toritori/factory/subclass'
+require_relative './toritori/factory'
+require_relative './toritori/version'
 
 # Main namespace
 module Toritori
@@ -21,8 +20,8 @@ module Toritori
       @factories = other
     end
 
-    def factory(name, produces: Class.new, &block)
-      factories[name] = Toritori::Factory.new(name, base_class: produces, &block)
+    def factory(name, produces: Class.new, creation_method: :new, &block)
+      factories[name] = Toritori::Factory.new(name, base_class: produces, creation_method: creation_method, &block)
       define_singleton_method(:"#{name}_factory") { factories[name] }
     end
 
@@ -30,10 +29,6 @@ module Toritori
       super
       subclass.factories = factories.transform_values(&:copy)
     end
-  end
-
-  def self.default_init
-    @default_init ||= ->(*args, **kwargs, &block) { new(*args, **kwargs, &block) }
   end
 
   def self.included(receiver)

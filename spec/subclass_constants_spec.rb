@@ -33,18 +33,13 @@ RSpec.describe Toritori do
       Class.new do
         include Toritori
 
-        factory :params, produces: SubclassParams do |data|
-          create(data: data)
-        end
+        factory :params, produces: SubclassParams, creation_method: :create
         factory :query, produces: SubclassQuery
       end
     end
     child_factory do
       Class.new(abstract_factory) do
-        params_factory.subclass.init do |data, var|
-          new(data, var)
-        end
-
+        params_factory.subclass.creation_method = :new
         params_factory.subclass.base_class ChildSubclassParams
       end
     end
@@ -60,7 +55,6 @@ RSpec.describe Toritori do
     end
 
     it 'simply creates instances' do
-      expect(Toritori::Factory::Instantiator).to receive(:new).once.and_call_original
       factory = child_factory.params_factory
       expect { factory.create }.to raise_error ArgumentError
       instance = factory.create(2, 9)

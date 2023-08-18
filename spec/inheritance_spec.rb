@@ -16,9 +16,7 @@ RSpec.describe Toritori do
       Class.new do
         include Toritori
 
-        factory :params, produces: InheritParams do |data|
-          create(data: data)
-        end
+        factory :params, produces: InheritParams, creation_method: :create
 
         params_factory.subclass do
           def get
@@ -29,9 +27,7 @@ RSpec.describe Toritori do
     end
     child_factory do
       Class.new(abstract_factory) do
-        params_factory.subclass.init do |data, var|
-          new(data, var)
-        end
+        params_factory.subclass.creation_method = :new
 
         params_factory.subclass do
           def initialize(data, var)

@@ -5,35 +5,31 @@ module Toritori
   class Factory
     attr_reader :name
 
-    def cached_instantiator(subclass)
-      id = [subclass.base_class.object_id, subclass.init.object_id].join('_')
-      @cache ||= ::Hash.new do |h, key|
-        h[key] = Instantiator.new(subclass)
-      end
-      @cache[id]
-    end
-
     def copy
-      self.class.new(name, base_class: base_class, &subclass.init)
+      self.class.new(name, base_class: base_class, creation_method: @subclass.creation_method)
     end
 
-    def initialize(name, base_class: nil, &block)
+    def initialize(name, base_class: nil, creation_method: :new)
       @name = name
-      @subclass = Subclass.new(base_class, block)
+      @subclass = Subclass.new(base_class, creation_method)
     end
 
-    def subclass(&block)
-      return @subclass unless block
-
-      @subclass = Subclass.new(Class.new(base_class, &block), @subclass.init)
+    def subclass(produces: nil, creation_method: @subclass.creation_method, &block)
+      child_class = produces || base_class
+      child_class = Class.new(child_class, &block) if block
+      @subclass = Subclass.new(child_class, creation_method)
     end
 
     def create(*args, **kwargs, &block)
-      cached_instantiator(@subclass).__create__(*args, **kwargs, &block)
+      base_class.public_send(creation_method, *args, **kwargs, &block)
     end
 
     def base_class
       @subclass.base_class
+    end
+
+    def creation_method
+      @subclass.creation_method
     end
   end
 end

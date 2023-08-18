@@ -4,15 +4,10 @@ module Toritori
   class Factory
     # Utility class that stores initalization procs
     class Subclass < BasicObject
-      def initialize(base_class, init)
-        @init = init || ::Toritori.default_init
+      attr_accessor :creation_method
+
+      def initialize(base_class)
         @base_class = base_class
-      end
-
-      def init(&block)
-        return @init unless block
-
-        @init = block
       end
 
       def base_class(subclass_const = nil)
