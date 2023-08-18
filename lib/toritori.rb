@@ -1,8 +1,7 @@
 # frozen_string_literal: true
 
-require_relative './toritori/factory/subclass'
-require_relative './toritori/factory'
-require_relative './toritori/version'
+require 'toritori/factory'
+require 'toritori/version'
 
 # Main namespace
 module Toritori
