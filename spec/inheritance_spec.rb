@@ -16,9 +16,7 @@ RSpec.describe Toritori do
       Class.new do
         include Toritori
 
-        factory :params, produces: InheritParams do |data|
-          create(data: data)
-        end
+        factory :params, produces: InheritParams, creation_method: :create
 
         params_factory.subclass do
           def get
@@ -29,11 +27,7 @@ RSpec.describe Toritori do
     end
     child_factory do
       Class.new(abstract_factory) do
-        params_factory.subclass.init do |data, var|
-          new(data, var)
-        end
-
-        params_factory.subclass do
+        params_factory.subclass(creation_method: :new) do
           def initialize(data, var)
             @data = data
             @var = var
@@ -52,13 +46,13 @@ RSpec.describe Toritori do
       expect(child_factory).to respond_to :params_factory
       factory = child_factory.params_factory
       expect(factory).to be_a Toritori::Factory
-      expect(factory.base_class <= InheritParams).to be_truthy
     end
 
     it 'simply creates instances' do
       factory = child_factory.params_factory
       expect { factory.create }.to raise_error ArgumentError
       instance = factory.create(2, 9)
+      expect(instance.class <= InheritParams).to be_truthy
       expect(instance.class.superclass.superclass).to eq InheritParams
       expect(instance.get).to eq 16
     end

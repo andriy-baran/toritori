@@ -3,37 +3,38 @@
 module Toritori
   # Generates module that adds support for objects creation
   class Factory
-    attr_reader :name
-
-    def cached_instantiator(subclass)
-      id = [subclass.base_class.object_id, subclass.init.object_id].join('_')
-      @cache ||= ::Hash.new do |h, key|
-        h[key] = Instantiator.new(subclass)
-      end
-      @cache[id]
-    end
-
     def copy
-      self.class.new(name, base_class: base_class, &subclass.init)
+      self.class.new(@name, base_class: @base_class, creation_method: @creation_method)
     end
 
-    def initialize(name, base_class: nil, &block)
+    def initialize(name, base_class: nil, creation_method: :new)
       @name = name
-      @subclass = Subclass.new(base_class, block)
+      @base_class = base_class
+      @creation_method = creation_method
     end
 
-    def subclass(&block)
-      return @subclass unless block
-
-      @subclass = Subclass.new(Class.new(base_class, &block), @subclass.init)
+    def subclass(produces: nil, creation_method: @creation_method, &block)
+      @base_class = check_base_class(produces) || @base_class
+      @base_class = Class.new(@base_class, &block) if block
+      @creation_method = creation_method
     end
 
     def create(*args, **kwargs, &block)
-      cached_instantiator(@subclass).__create__(*args, **kwargs, &block)
+      return @base_class.new(*args, **kwargs, &block) if @creation_method == :new
+
+      @base_class.public_send(@creation_method, *args, **kwargs, &block)
     end
 
-    def base_class
-      @subclass.base_class
+    private
+
+    def check_base_class(subclass_const = nil)
+      return unless subclass_const
+
+      ::Kernel.raise NotAClassError unless subclass_const.is_a?(::Class)
+
+      ::Kernel.raise(SubclassError, "must be a subclass of #{@base_class.inspect}") unless subclass_const <= @base_class
+
+      subclass_const
     end
   end
 end

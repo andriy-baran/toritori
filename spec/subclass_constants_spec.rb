@@ -33,19 +33,13 @@ RSpec.describe Toritori do
       Class.new do
         include Toritori
 
-        factory :params, produces: SubclassParams do |data|
-          create(data: data)
-        end
+        factory :params, produces: SubclassParams, creation_method: :create
         factory :query, produces: SubclassQuery
       end
     end
     child_factory do
       Class.new(abstract_factory) do
-        params_factory.subclass.init do |data, var|
-          new(data, var)
-        end
-
-        params_factory.subclass.base_class ChildSubclassParams
+        params_factory.subclass(produces: ChildSubclassParams, creation_method: :new)
       end
     end
   end
@@ -55,15 +49,14 @@ RSpec.describe Toritori do
       expect(child_factory).to respond_to :params_factory
       factory = child_factory.params_factory
       expect(factory).to be_a Toritori::Factory
-      expect(factory.base_class <= SubclassParams).to be_truthy
-      expect(factory.base_class).to eq ChildSubclassParams
     end
 
     it 'simply creates instances' do
-      expect(Toritori::Factory::Instantiator).to receive(:new).once.and_call_original
       factory = child_factory.params_factory
       expect { factory.create }.to raise_error ArgumentError
       instance = factory.create(2, 9)
+      expect(instance.class <= SubclassParams).to be_truthy
+      expect(instance.class).to eq ChildSubclassParams
       factory.create(3, 9)
       factory.create(4, 9)
       expect(instance.class.superclass).to eq SubclassParams
@@ -72,9 +65,9 @@ RSpec.describe Toritori do
 
     it 'accepts only subclasses' do
       factory = child_factory.query_factory
-      expect { factory.subclass.base_class ChildSubclassParams }
+      expect { factory.subclass(produces: ChildSubclassParams) }
         .to raise_error Toritori::SubclassError
-      expect { factory.subclass.base_class '' }
+      expect { factory.subclass(produces: '') }
         .to raise_error Toritori::NotAClassError
     end
   end
