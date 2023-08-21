@@ -66,10 +66,7 @@ The library defaults is to use `new` method for instantiation and bypass paramet
 class MyAbstractFactory
   include Toritori
 
-  factory :file, produces: File do |file_name|
-    # Every method is called on File
-    open(file_name, 'r')
-  end
+  factory :file, produces: File, creation_method: :open
 end
 
 MyAbstractFactory.file_factory.create('/dev/null') # => #<File @path='/dev/null'>
@@ -112,11 +109,6 @@ class ModernFactory < MyAbstractFactory
 
     attr_reader :wifi
   end
-
-  # Notify factory about new way to create objects
-  chair_factory.subclass.init do |width, wifi:|
-    new(width, wifi)
-  end
 end
 
 modern_chair = ModernFactory.chair_factory.create(2500, wifi: false)
@@ -127,12 +119,16 @@ The subclass (`ModernFactory`) will gen a copy of `factories` so you can customi
 Sometimes when subclass definition is big it is better to put it into a separate file. To make the library to use that sub-class:
 ```ruby
 class ModernTable < MyAbstractFactory.table_factory.base_class
-  # ... omitied ...
-end
+  # ... omitted ...
+  end
 
 class ModernFactory < MyAbstractFactory
   # Update initialize method
-  table_factory.subclass.base_class ModernTable
+  table_factory.subclass(produces: ModernTable, creation_method: :produce) do
+    def self.produce(...)
+      new(...)
+    end
+  end
 
   table_factory.create # => #<ModernTable>
 end
