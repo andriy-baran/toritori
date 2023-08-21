@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    toritori (0.1.0)
+    toritori (0.2.0)
 
 GEM
   remote: https://rubygems.org/
