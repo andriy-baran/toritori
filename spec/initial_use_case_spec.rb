@@ -39,4 +39,12 @@ RSpec.describe Toritori do
       expect(instance.get).to eq 7
     end
   end
+
+  describe '#create' do
+    it 'accepts factory name as first argument' do
+      instance = abstract_factory.create(:params, 2)
+      expect(instance).to be_a EasyParams
+      expect(instance.get).to eq 7
+    end
+  end
 end

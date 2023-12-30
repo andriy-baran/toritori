@@ -28,6 +28,10 @@ module Toritori
       super
       subclass.factories = factories.transform_values(&:copy)
     end
+
+    def create(name, *args, **kwargs, &block)
+      factories[name].create(*args, **kwargs, &block)
+    end
   end
 
   def self.included(receiver)
