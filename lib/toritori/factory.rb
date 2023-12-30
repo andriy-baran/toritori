@@ -3,6 +3,8 @@
 module Toritori
   # Generates module that adds support for objects creation
   class Factory
+    attr_reader :base_class, :creation_method
+
     def copy
       self.class.new(@name, base_class: @base_class, creation_method: @creation_method)
     end
