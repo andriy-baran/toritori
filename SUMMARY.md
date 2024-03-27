@@ -1,5 +1,5 @@
 # Table of contents
 
-* [CHANGELOG](README.md)
+* [CHANGELOG](CHANGELOG.md)
 * [Contributor Covenant Code of Conduct](CODE\_OF\_CONDUCT.md)
-* [Toritori](<README (1).md>)
+* [Toritori](<README.md>)
