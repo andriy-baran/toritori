@@ -2,6 +2,7 @@
 
 [![Maintainability](https://api.codeclimate.com/v1/badges/4e5138d5018b81671692/maintainability)](https://codeclimate.com/github/andriy-baran/toritori/maintainability)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/4e5138d5018b81671692/test_coverage)](https://codeclimate.com/github/andriy-baran/toritori/test_coverage)
+[![Gem Version](https://badge.fury.io/rb/toritori.svg)](https://badge.fury.io/rb/toritori)
 
 Simple tool to work with Abstract Factories.
 It provides the DSL for defining a set factories and produce objects.
@@ -22,118 +23,162 @@ Or install it yourself as:
 
     $ gem install toritori
 
-## Usage
-
-### Basics
-Add the module to the class
+## Basic usage
+First, add module to target class and define factory method
 ```ruby
 require 'toritori'
 
 class MyAbstractFactory
   include Toritori
+
+  factory :chair
 end
 ```
-It will provide an ablility to declare and refer individual factories
+You'll get a few methods:
 ```ruby
-# Declaration
-MyAbstractFactory.factory(:chair)
-MyAbstractFactory.factory(:table)
-# Access all factories
-MyAbstractFactory.factories # => { chair: #<Toritori::Factory @name: :chair>, table: #<Toritori::Factory @name: :table> }
-# Access individual factory
-MyAbstractFactory.chair_factory # => #<Toritori::Factory @name: :chair>
-MyAbstractFactory.table_factory # => #<Toritori::Factory @name: :table>
-```
-Creating objects is also easy
-```ruby
-MyAbstractFactory.table_factory.create(<attrs>) # => #<Class>
-```
-To provide a specific class for factory to create instances
-```ruby
-Sofa = Struct.new(:width)
+# top level method similar to FactoryBot
+MyAbstractFactory.create(:chair)
 
+# a way for inspecting definitions of factory methods
+MyAbstractFactory.factories         # => { chair: #<Toritori::Factory @name: :chair> }
+MyAbstractFactory.factories[:chair] # => chair: #<Toritori::Factory @name: :chair>
+# an alias methods that reads from factories hash
+factory = MyAbstractFactory.chair_factory     # => chair: #<Toritori::Factory @name: :chair>
+
+# Specific factory actually creates new objects
+# top level method just calls it
+MyAbstractFactory.factories[:chair].create
+
+factory.base_class      #=> #<Class>
+factory.creation_method #=> :new
+```
+This example above shows a rare case when we just create instances of anonymous class.
+## Setup options
+In most cases we want to specify a class of objects we are aiming to produce. Or define a few methods ourself.
+Assume we have some class
+```ruby
+class Table < Struct(:width, :height, :depth)
+  # ...omitted...
+end
+```
+To specify that we want to produce instances of `Table` class
+```ruby
 class MyAbstractFactory
-  include Toritori
-
-  factory :sofa, produces: Sofa
+  factory :table, produces: Table
 end
 
-MyAbstractFactory.sofa_factory # =>
-MyAbstractFactory.sofa_factory.create(2300) # => #<Sofa @width=2300>
+factory = MyAbstractFactory.table_factory
+factory.base_class      #=> #<Table>
+factory.creation_method #=> :new
+
+MyAbstractFactory.create(:table, 80, 80, 120) #=> #<Table @width=80 @height=80 @depth=180>
 ```
-The library defaults is to use `new` method for instantiation and bypass parameters from `create` method. But if you need to customize this behaviour
+By default, we just call `new` method to instantiate an object. Some times it's not possible
 ```ruby
 class MyAbstractFactory
-  include Toritori
-
   factory :file, produces: File, creation_method: :open
 end
 
+factory = MyAbstractFactory.file_factory
+factory.base_class      #=> #<File>
+factory.creation_method #=> :open
+
 MyAbstractFactory.file_factory.create('/dev/null') # => #<File @path='/dev/null'>
 ```
-### Subclassing
-For example:
+Or you need to use another `factory method`
 ```ruby
-class ModernFactory < MyAbstractFactory
-  factories # => { chair: #<Toritori::Factory @name: :chair>,
-            #      table: #<Toritori::Factory @name: :table>,
-            #      sofa: #<Toritori::Factory @name: :sofa, @base_class=Sofa> }
-end
-```
-If we need to add a wifi option to sofa
-```ruby
-class ModernFactory < MyAbstractFactory
-  sofa_factory.subclass do
-    def add_wifi
-      @wifi = true
-    end
-
-    attr_reader :wifi
+class MyAbstractFactory
+  factory :user, produces: User do |**kw|
+    FactoryBot.create(:user, **kw)
   end
 end
 
-modern_sofa = ModernFactory.sofa_factory.create(2500)
-modern_sofa.wifi # => nil
-modern_sofa.add_wifi
-modern_sofa.wifi # => true
+factory = MyAbstractFactory.user_factory
+factory.base_class      #=> #<User>
+factory.creation_method #=> #<Proc>
 ```
-If we need to add wifi option to initializer
+## Sub-classes
+But the main feature of the library is a possibility to change or extend the produced object. It is achieved by defining a sub-class of the target class. That is why `produces` option is required in most cases
 ```ruby
-class ModernFactory < MyAbstractFactory
-  # Update initialize method
-  chair_factory.subclass do
-    def initialize(width, wifi)
-      super(width)
-      @wifi = wifi
-    end
+class MyAbstractFactory
+  table_factory.subclass do
+    attr_reader :shape
 
-    attr_reader :wifi
+    def initialize(width, height, depth, shape)
+      super(width, height, depth)
+      @shape = shape
+    end
   end
 end
 
-modern_chair = ModernFactory.chair_factory.create(2500, wifi: false)
-modern_chair.wifi # => false
+MyAbstractFactory.create(:table, 80, 80, 80, :round)
+#=> #<Table @width=80 @height=80 @depth=180 @shape=:round>
 ```
-The subclass (`ModernFactory`) will gen a copy of `factories` so you can customize sublasses without side effects on a base class (`MyAbstractFactory`).
-
-Sometimes when subclass definition is big it is better to put it into a separate file. To make the library to use that sub-class:
+However this operation alters a definition of factory
 ```ruby
-class ModernTable < MyAbstractFactory.table_factory.base_class
+MyAbstractFactory.table_factory.base_class            #=> #<Class>
+MyAbstractFactory.table_factory.base_class.superclass #=> #<Table>
+MyAbstractFactory.table_factory.creation_method       #=> :new
+```
+Sometimes when sub-class definition is big it is better to put it into a separate file.
+```ruby
+class ModernTable < Table
   # ... omitted ...
-  end
+end
 
-class ModernFactory < MyAbstractFactory
-  # Update initialize method
-  table_factory.subclass(produces: ModernTable, creation_method: :produce) do
-    def self.produce(...)
+# Alternatively more generic code
+class ModernTable < MyAbstractFactory.table_factory.base_class; end
+
+class MyAbstractFactory
+  table_factory.subclass produces: ModernTable
+end
+
+MyAbstractFactory.table_factory.base_class            #=> #<ModernTable>
+MyAbstractFactory.table_factory.base_class.superclass #=> #<Table>
+MyAbstractFactory.table_factory.creation_method       #=> :new
+```
+Note, that you should provide a child class otherwise you'll get exception `Toritori::SubclassError`
+It is possible to change creation method of a sub-class
+```ruby
+class MyAbstractFactory
+  table_factory.subclass creation_method: :create do
+    def self.create(...)
       new(...)
     end
   end
+end
 
-  table_factory.create # => #<ModernTable>
+MyAbstractFactory.table_factory.base_class            #=> #<Class>
+MyAbstractFactory.table_factory.base_class.superclass #=> #<Table>
+MyAbstractFactory.table_factory.creation_method       #=> :create
+```
+Following calls of `subclass` method will create new sub-class based on sub-class generated by previous invocation.
+## Inheritance
+Let's imagine you need to the following setup
+```ruby
+class MyAbstractFactory
+  factory :chair
+  factory :table
+end
+
+class ModernFactory < MyAbstractFactory
+  chair.subclass do
+    include ModernStyle
+  end
+end
+class VictorianFactory < MyAbstractFactory
+  chair.subclass do
+    include VictorianStyle
+  end
 end
 ```
-The sub-class should be a child of a base class we specified in factory of the parent abstract factory, otherwise you'll get `Toritori::SubclassError`. We recommend to have base classes (`produces:` option) for parent abstract factory defined explicitly to have an ability to refer them in sub-class files.
+During inheritance child classes should get the same factories as parent class. Definition of factories is copied from parent to child class
+```ruby
+copy = MyAbstractFactory.chair_factory.copy
+copy.base_class == MyAbstractFactory.chair_factory.base_class
+copy.creation_method #=> :new
+```
+It means that after the inheritance `factories` of child and parent are disconnected. Changes in factory definition in parent factory won't affect child classes and vice versa.
 
 ## Development
 
