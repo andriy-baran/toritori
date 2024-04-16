@@ -9,10 +9,10 @@ module Toritori
       self.class.new(@name, base_class: @base_class, creation_method: @creation_method)
     end
 
-    def initialize(name, base_class: nil, creation_method: :new)
+    def initialize(name, base_class: nil, creation_method: :new, &block)
       @name = name
       @base_class = base_class
-      @creation_method = creation_method
+      @creation_method = block || creation_method
     end
 
     def subclass(produces: nil, creation_method: @creation_method, &block)
@@ -22,6 +22,7 @@ module Toritori
     end
 
     def create(*args, **kwargs, &block)
+      return @creation_method.call(*args, **kwargs, &block) if defined? @creation_method.call
       return @base_class.new(*args, **kwargs, &block) if @creation_method == :new
 
       @base_class.public_send(@creation_method, *args, **kwargs, &block)
